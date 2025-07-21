@@ -1,0 +1,3 @@
+"0","##Merging the data "
+"0","england_immagrant <- merge(occupations, england_immagrant, by = ""occupations"")"
+"0",""

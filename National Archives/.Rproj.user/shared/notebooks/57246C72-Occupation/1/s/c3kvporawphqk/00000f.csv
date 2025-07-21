@@ -1,0 +1,6 @@
+"0","##Deleting unnecessary colums "
+"0",""
+"0","# Remove specific columns by name"
+"0","england_immagrant <- subset(england_immagrant, select = -c(forename_standard, particle, surname_standard, suffix, householder, person_notes, biographical_notes, aliases, social_statuses, archive, reference, part ))"
+"0",""
+"0",""

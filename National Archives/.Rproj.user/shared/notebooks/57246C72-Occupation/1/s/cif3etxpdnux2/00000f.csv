@@ -1,0 +1,5 @@
+"0",""
+"0","#Renaming occupation from the atafram occupation from ""term"" to ""occupatioon"""
+"0","  "
+"0","occupations <- occupations %>%"
+"0","  rename(occupations = term)"

@@ -1,0 +1,15 @@
+---
+title: "big dataset"
+author: "Ayisha Beauge"
+date: "2025-07-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+dataset <- read.csv("C:\\Users\\abeau\\Downloads\\englands_immigrants.csv")
+```
+

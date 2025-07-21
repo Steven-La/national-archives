@@ -1,0 +1,137 @@
+## ---------------------------
+##
+## APS 2025 VARIABLE SELECTION WORKSHOP 
+##
+## Irma example code
+##
+## Author: Dr. Sierra Bainter
+##
+## ---------------------------
+
+
+## Load Packages
+    # first install packages as needed:
+    #install.packages("packagename")
+
+library(corrplot) #visualize correlation matrix
+library("car")
+library('psych')
+library('dplyr')
+library("tidyverse")
+library(tidyr)
+library(MASS) #for stepwise regression
+library(glmnet) #for lasso 
+library(SSVS) #for stochastic search variable selection
+
+
+## Set working directory automatically to location script is saved
+
+path <- dirname(rstudioapi::getActiveDocumentContext()$path)
+setwd(path)
+
+## Read in and summarize data
+data <- read.csv('irmaSSVS.csv')
+
+summary(data)
+
+str(data)
+
+
+## Plot correlation matrix
+
+M = cor(data)
+
+corrplot(M, type="upper")
+
+
+# Test for significant correlations
+test = cor.mtest(data)
+
+corrplot(M, p.mat=test$p, insig="label_sig", sig.level = .005, type="upper")
+
+## ---Method 1: Prescreening ------------------
+# Create list and formula of all variables correlated "significantly" at given alpha level
+outcome <- "IESR"
+alpha <- 0.005
+significant_vars <- names(which(test$p[outcome, ] < alpha & names(test$p[outcome, ]) != outcome))
+
+print(significant_vars)
+
+predictors <- paste(significant_vars, collapse = " + ")
+formula <- as.formula(paste(outcome, "~", predictors))
+
+# Model based on prescreening for significant correlations
+screen_model<-lm(formula, data=data)
+
+summary(screen_model)
+
+## ---Method 2: Choose "best" model with stepwise approaches ------------------
+
+#Stepwise Regression
+fullModel = lm(IESR ~ ., data = data)
+nullModel = lm(IESR ~ 1, data = data)
+
+?stepAIC
+
+forward = stepAIC(nullModel, # start with a model containing no variables
+                  direction = 'forward', # run forward selection
+                  scope = list(upper = fullModel, # the maximum to consider is a model with all variables
+                               lower = nullModel), # the minimum to consider is a model with no variables
+                  trace = TRUE)
+summary(forward)
+
+backward = stepAIC(fullModel, # start with a model containing all variables
+                  direction = 'backward', # run backward selection
+                  scope = list(upper = fullModel, # the maximum to consider is a model with all variables
+                               lower = nullModel), # the minimum to consider is a model with no variables
+                  trace = 0)
+summary(backward)
+
+both = stepAIC(fullModel, # start with a model containing no variables
+                  direction = 'both', # run forward selection
+                  scope = list(upper = fullModel, # the maximum to consider is a model with all variables
+                               lower = nullModel), # the minimum to consider is a model with no variables
+                  trace = 0)
+summary(both)
+
+## ---Method 3: Lasso ------------------
+
+x_vars = model.matrix(IESR~., data)[,-1]
+y_var <- data$IESR
+lambda_seq <- 10^seq(2, -2, by = -.1)
+
+set.seed(86)
+train = sample(1:nrow(x_vars), nrow(x_vars)/2)
+x_test = (-train)
+y_test = y_var[x_test]
+cv_output = cv.glmnet(x_vars[train,], y_var[train],
+                      alpha = 1, lambda = lambda_seq,
+                      nfolds = 5)
+
+# identifying best lamda
+best_lam = cv_output$lambda.min
+best_lam
+
+lasso_best = glmnet(x_vars[train,], y_var[train], alpha = 1, 
+                    lambda = best_lam)
+coef(lasso_best)
+
+## ---Method 4: SSVS ------------------
+
+# Create a list of all candidate predictor names
+all_pred <- names(data)[names(data) != outcome]
+
+
+# Create a comma-separated quoted list
+all_pred_list <- paste0('"', all_pred, '"', collapse = ", ")
+cat("c(", all_pred_list, ")\n")
+
+
+results = ssvs(data = data, x = all_pred, y = 'IESR', continuous = TRUE)
+summary(results, interval = 0.89, ordered = TRUE)
+plot(results)
+
+
+
+
+

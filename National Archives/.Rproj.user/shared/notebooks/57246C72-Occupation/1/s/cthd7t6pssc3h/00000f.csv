@@ -1,0 +1,5 @@
+"0","#| label: merging-place"
+"0",""
+"0","england_immagrant <- england_immagrant %>%"
+"0","  mutate(origin_regions = coalesce(origin_region, origin_region_standard))"
+"0",""

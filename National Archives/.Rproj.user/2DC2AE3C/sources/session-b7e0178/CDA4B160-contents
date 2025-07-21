@@ -1,0 +1,23 @@
+---
+title: "National Archives"
+author: "Ayisha Beauge"
+format: html
+
+---
+
+```{r}
+#| label: Library
+
+library(dplyr)
+library(tidyverse)
+
+
+
+```
+
+
+```{r}
+dataset <- read.csv("C:/Users/abeau/Downloads/englands_immigrants_search_results.csv")
+
+```
+

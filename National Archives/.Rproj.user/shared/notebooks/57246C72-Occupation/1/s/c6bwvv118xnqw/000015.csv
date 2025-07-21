@@ -1,0 +1,3 @@
+"0","#| label: read-excel"
+"0","occupations <- read_excel(""C:\\Users\\abeau\\Downloads\\Occupations.xlsx"")"
+"0",""
