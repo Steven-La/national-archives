@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+##Library
 
 ```{r}
 #| label: library
@@ -17,10 +18,12 @@ library(dplyr)
 library(tidyverse)
 library(stringr)
 library(readxl)
+library(ggplot2)
 
 
 ```
 
+#Pre-processsing
 
 ```{r}
 #| label: read-excel
@@ -36,64 +39,109 @@ category_map <- list(
   "Domestic & Personal Service" = c(
     "servant", "butler", "page", "groom", "launderer", "scullion", "nurse", "kitchen boy",
     "usher", "tapster", "messenger", "yeoman", "gentlewoman", "gentleman usher",
-    "yeoman of the chamber", "yeoman of the crown", "innholder", "cook"
+    "yeoman of the chamber", "yeoman of the crown", "innholder", "cook", "beerman", "hosteler",
+    "servingman", "garcon", "taverner", "beerseller", "beermaker", "boy", "chamberlain", 
+    "custodian", "diaperman", "esquire of the body", "esquire of the household", "keeper", 
+    "reader", "victualler", "wine drawer","falconer"
   ),
+  
   "Manual Workers" = c(
-    "labourer", "miller", "ploughman", "collier", "farmer", "gardener", "shepherd", "miner",
-    "loader", "carter", "thresher", "herder", "lighterman", "keelman", "wainman",
-    "miller servingman", "fowler", "slaughterman", "quarrier", "raffman", "workman",
-    "swineherd", "wheeler", "shearman", "hellier", "roughmason", "pavier"
+    "labourer", "miller", "ploughman", "collier", "gardener", "shepherd", "miner", "loader", 
+    "carter", "thresher", "herder", "lighterman", "keelman", "wainman", "miller servingman", 
+    "fowler", "slaughterman", "quarrier", "raffman", "workman", "swineherd", "wheeler", 
+    "shearman", "hellier", "roughmason", "pavier", "apprentice", "porter", "journeyman", 
+    "barrowman", "bedeman", "carrier", "drayman", "dyker", "sayer", "cosser", "collector", 
+    "colemeter", "water bearer", "millward"
   ),
+  
   "Merchants & Traders" = c(
     "merchant", "broker", "factor", "draper", "stationer", "chapman", "trader", "vintner",
     "fishmonger", "grocer", "ironmonger", "leather seller", "pedder", "vine setter",
-    "merchant's clerk", "haberdasher"
+    "merchant's clerk", "haberdasher", "hardwareman", "mercer", "moneyer", "fruiterer", 
+    "purser", "chandler", "clothes dealer", "huckster", "horse dealer", "spicer", "poulterer"
   ),
+  
   "Religious Orders" = c(
     "chaplain", "priest", "vicar", "monk", "rector", "preacher", "parish", "bishop", "friar",
     "chantry", "pardoner", "summoner", "precentor", "preceptor", "serving priest",
-    "king's chaplain", "papal collector", "papal nuncio", "parson", "vagabond"
+    "king's chaplain", "papal collector", "papal nuncio", "parson", "vagabond", "prior", 
+    "brother", "prebendary", "pastor", "canon", "curate", "archdeacon", "cardinal", "celebrant", "confessor"
   ),
+  
   "Nonworking" = c(
     "beggar", "student", "scholar", "prisoner", "lodger", "poet", "master of arts"
   ),
+  
   "Craftsmen & Artisans" = c(
-    "tailor", "weaver", "cordwainer", "shoemaker", "smith", "goldsmith", "carpenter",
-    "painter", "glazier", "mason", "hatmaker", "embroiderer", "dyer", "tanner", "currier",
-    "saddler", "fisherman", "clockmaker", "joiner", "cutler", "potter", "sculptor", "lapidary",
-    "lastmaker", "parchment maker", "tilemaker", "soapmaker", "skepmaker", "instrument maker",
-    "silk raiser", "silkwoman", "shuttlemaker", "slater", "spurrier", "swordmaker",
-    "tent maker", "stringer", "pinmaker", "pommel maker", "grinder", "jerkin maker",
-    "gold drawer", "goldwiredrawer", "ribbonmaker", "ropemaker", "roper", "shearing grinder",
-    "ploughmaker", "wool packer", "wool spinner", "woollen weaver", "free mason",
-    "king's glazier", "king's goldsmith", "pie baker", "baker", "upholsterer", "woodmaker",
-    "wool card maker", "furrier", "founder", "soapmaker", "souter", "cobbler", "capper",
-    "skinner", "brewer", "beerbrewer", "barber", "cooper", "sawyer"
+    "tailor", "weaver", "cordwainer", "shoemaker", "smith", "goldsmith", "carpenter", "painter", 
+    "glazier", "mason", "hatmaker", "embroiderer", "dyer", "tanner", "currier", "saddler", 
+    "fisherman", "clockmaker", "joiner", "cutler", "potter", "sculptor", "lapidary", "lastmaker", 
+    "parchment maker", "tilemaker", "soapmaker", "skepmaker", "instrument maker", "silk raiser", 
+    "silkwoman", "shuttlemaker", "slater", "spurrier", "swordmaker", "tent maker", "stringer", 
+    "pinmaker", "pommel maker", "grinder", "jerkin maker", "gold drawer", "goldwiredrawer", 
+    "ribbonmaker", "ropemaker", "roper", "shearing grinder", "ploughmaker", "wool packer", 
+    "wool spinner", "woollen weaver", "free mason", "king's glazier", "king's goldsmith", 
+    "pie baker", "baker", "upholsterer", "woodmaker", "wool card maker", "furrier", "founder", 
+    "soapmaker", "souter", "cobbler", "capper", "skinner", "brewer", "beerbrewer", "barber", 
+    "cooper", "sawyer", "armourer", "basketmaker", "botcher", "carver", "hosier", "pattenmaker", 
+    "tiler", "tinker", "webster", "cap-thicker", "capmaker", "clothmaker", "clothworker", 
+    "fuller", "glover", "hatter", "pinner", "pouchmaker", "pursemaker", "saltpetre-maker", 
+    "stainer", "tawyer", "tucker", "worker of wools and cloths", "arras maker", "bookprinter", 
+    "button maker", "comb maker", "craftsman", "finer", "hooper", "jeweller", "lockyer", 
+    "organmaker", "pointmaker", "artificer", "balance maker", "barker", "bellows maker", 
+    "bitmaker", "blacksmith", "bowyer", "bracemaker", "brazier", "bricklayer", "brickmaker", 
+    "brickman", "brigandine maker", "burners", "cannon maker", "cap dresser", "cap worker", 
+    "cardmaker", "chaloner", "clapboard maker", "clogmaker", "combset maker", "counterpoint maker", 
+    "crossbow maker", "dauber", "dialmaker", "doubletmaker", "engraver", "failles maker", 
+    "furber", "girdler", "goldbeater", "gunmaker", "hammer maker", "hokyer", "jackmaker", 
+    "leather drier", "lime-burner", "limner", "mill picker", "netmaker", "oilmaker", "pewterer", 
+    "plateman", "printer", "quilter", "rowlyer", "sheather", "spinner", "spooner", "spicer", 
+    "stoneslipper", "stole maker", "taboret", "thatcher", "tinner", "tipper", "turner", 
+    "weterman", "wiredrawer", "wool comber", "whitetawyer", "wright", "woader", "bookbinder", "salter", "farrier", "fleshewer", "parchmener", "burner", "cauldron maker
+"
   ),
+  
   "Legal & Clerical" = c(
-    "clerk", "attorney", "scribe", "secretary", "notary", "proctor", "lawyer",
-    "holy water clerk", "prothonotary", "king's latin secretary", "writer"
+    "clerk", "attorney", "scribe", "secretary", "notary", "proctor", "lawyer", "holy water clerk", 
+    "prothonotary", "king's latin secretary", "writer", "scrivener", "bachelor in laws", "bailiff"
   ),
+  
   "Medical" = c(
-    "surgeon", "physician", "apothecary", "king's physician"
+    "surgeon", "physician", "apothecary", "king's physician", "doctor of medicine", "leech", 
+    "doctor", "master in medicine"
   ),
+  
   "Military & Security" = c(
-    "soldier", "gaoler", "serjeant at arms", "serjeant of the king's trumpeters", "post",
+    "soldier", "gaoler", "serjeant at arms", "serjeant of the king's trumpeters", "post", 
     "king's post or runner", "hackneyman"
   ),
+  
   "Agriculture" = c(
-    "husbandman", "butcher"
+    "husbandman", "butcher", "fisher", "herdman", "horsekeeper", "tenant", "cowherd", 
+    "flaxwife", "walker", "warrener", "drover", "farmer"
   ),
+  
   "Maritime & Transportation" = c(
-    "mariner", "shipper"
+    "mariner", "shipper", "shipman", "shipmaster", "waterman", "seaman", "shipwright", 
+    "boatman", "carrier", "drayman", "ferryman", "sailor", "shipowner"
   ),
+  
   "Performers, Artists, & Intellectuals" = c(
-    "fiddler", "piper", "poet", "orator", "sculptor", "portrayer"
+    "fiddler", "piper", "poet", "orator", "sculptor", "portrayer", "minstrel", "musician", 
+    "schoolmaster", "teacher", "drummer", "king's trumpeter", "professor"
   ),
-  "Other" = c(
-    "corviser", "king's esquire", "king's glazier", "king's goldsmith", "kempster", "pannierman"
+  
+  "Transport" = c(
+    "shipman", "shipmaster", "waterman", "seaman", "shipwright", "boatman", "carrier", 
+    "drayman", "ferryman", "sailor", "shipowner"
+  ),
+  
+  "Archaic" = c(
+    "corviser", "king's esquire", "king's glazier", "king's goldsmith", "kempster", 
+    "pannierman", "gunner", "hokyer", "rowlyer", "weterman"
   )
 )
+
 
 ```
 
@@ -115,10 +163,12 @@ occupations <- occupations %>%
       str_detect(tolower(term), str_c(category_map[["Agriculture"]], collapse = "|")) ~ "Agriculture",
       str_detect(tolower(term), str_c(category_map[["Maritime & Transportation"]], collapse = "|")) ~ "Maritime & Transportation",
       str_detect(tolower(term), str_c(category_map[["Performers, Artists, & Intellectuals"]], collapse = "|")) ~ "Performers, Artists, & Intellectuals",
-      str_detect(tolower(term), str_c(category_map[["Other"]], collapse = "|")) ~ "Other",
+      str_detect(tolower(term), str_c(category_map[["Transport"]], collapse = "|")) ~ "Transport",
+      str_detect(tolower(term), str_c(category_map[["Archaic"]], collapse = "|")) ~ "Archaic",
       TRUE ~ "Uncategorized"
     )
   )
+
 
 ```
 
@@ -183,3 +233,232 @@ england_immagrant <- england_immagrant %>%
 
 
 ```
+
+
+
+```{r}
+##install.packages("openxlsx")
+
+#library(openxlsx)
+
+# E
+# Save the data to an Excel file
+#write.xlsx(england_immagrant, "england_immagrant.xlsx")
+
+
+```
+
+
+
+```{r}
+england_immagrant[is.na(england_immagrant)] <- "Missing"
+
+```
+
+```{r}
+library(openxlsx)
+
+# E
+# Save the data to an Excel file
+#write.xlsx(england_immagrant, "england_immagrant_cleaned.xlsx")
+
+```
+
+
+
+```{r}
+
+##ggplot(england_immagrant, aes(x = factor(year), y = height)) +
+  #geom_segment(aes(xend = factor(year), y = 0, yend = height, color = factor(year)), size = 1.5) +
+  #geom_point(aes(y = 0), size = 7, shape = 21, fill = "white", stroke = 2, color = "black") +
+  #geom_point(aes(y = height), size = 5, shape = 21, fill = "white", stroke = 2, color = "black") +
+  #scale_color_manual(values = timeline_data$color) +
+  ##theme_minimal() +
+  #labs(x = NULL, y = NULL, title = NULL) +
+  #theme(
+   # axis.text.y = element_blank(),
+    #axis.ticks.y = element_blank(),
+  #  axis.text.x = element_text(size = 14, face = "bold"),
+   # panel.grid = element_blank(),
+   # legend.position = "none"
+  #)
+```
+
+
+
+```{r}
+top_regions <- england_immagrant %>%
+  filter(origin_regions != "Missing") %>%
+  count(origin_regions) %>%
+  top_n(10, n) %>%
+  arrange(n)
+
+# Bar plot
+ggplot(top_regions, aes(x = reorder(origin_regions, n), y = n)) +
+  geom_bar(stat = "identity", fill = "darkorange") +
+  labs(
+    title = "Top 15 Origin Regions",
+    x = "Origin Region",
+    y = "Count"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
+
+```
+
+```{r}
+england_immagrant %>%
+  mutate(is_missing = ifelse(origin_regions == "Missing", "Missing", "Known")) %>%
+  count(is_missing) %>%
+  ggplot(aes(x = is_missing, y = n, fill = is_missing)) +
+  geom_col() +
+  scale_fill_viridis_d(option = "D", end = 0.8) +
+  labs(
+    title = "Known vs Missing Origin Regions",
+    x = "Data Type",
+    y = "Number of Records"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+#Stacked-bar
+library(dplyr)
+library(ggplot2)
+library(viridis)
+
+top_10_origins <- england_immagrant %>%
+  filter(origin_regions != "Missing") %>%
+  count(origin_regions, sort = TRUE) %>%
+  slice_max(n, n = 10) %>%
+  pull(origin_regions)
+
+filtered_data <- england_immagrant %>%
+  filter(origin_regions %in% top_10_origins, category != "Uncategorized")
+
+top_5_categories <- filtered_data %>%
+  count(category, sort = TRUE) %>%
+  slice_max(n, n = 5) %>%
+  pull(category)
+
+filtered_data <- filtered_data %>%
+  filter(category %in% top_5_categories)
+
+ggplot(filtered_data, aes(x = origin_regions, fill = category)) +
+  geom_bar(position = "stack") +
+  scale_fill_viridis_d(option = "D") +  
+  labs(
+    title = "Top 5 Occupation Categories by Top 10 Origin Regions",
+    x = "Origin Region",
+    y = "Count",
+    fill = "Occupation Category"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(face = "bold"))
+
+
+```
+ Mossiac 
+ 
+```{r}
+library(ggmosaic)
+
+library(ggmosaic)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+
+top_origins <- england_immagrant %>%
+  filter(origin_towns != "Missing") %>%
+  count(origin_towns, sort = TRUE) %>%
+  slice_head(n = 5) %>%
+  pull(origin_towns)
+
+top_residences <- england_immagrant %>%
+  filter(residence_county != "Missing") %>%
+  count(residence_county, sort = TRUE) %>%
+  slice_head(n = 5) %>%
+  pull(residence_county)
+
+filtered_data <- england_immagrant %>%
+  filter(origin_towns %in% top_origins,
+         residence_county %in% top_residences)
+
+filtered_data$origin_towns <- factor(filtered_data$origin_towns, levels = top_origins)
+filtered_data$residence_county <- factor(filtered_data$residence_county, levels = top_residences)
+
+# Mosaic plot
+ggplot(data = filtered_data) +
+  geom_mosaic(aes(x = product(origin_towns), fill = residence_county), na.rm = TRUE) +
+  labs(
+    title = "Mosaic Plot: Origin Towns vs Residence County",
+    x = "Origin Towns",
+    y = "Proportion",
+    fill = "Residence County"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+    plot.title = element_text(face = "bold")
+  )
+
+
+```
+
+```{r}
+#ggplot(data = filtered_data) +
+ # geom_bar(aes(x = origin_towns, fill = residence_county), position = "fill") +
+ # labs(
+   # title = "Proportion of Residence County by Origin Town",
+    #x = "Origin Towns",
+    #y = "Proportion",
+   # fill = "Residence County"
+ # ) +
+ # theme_minimal() +
+ # theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+
+##Mosiac
+
+```{r}
+
+library(viridis)
+
+top_residences <- england_immagrant %>%
+  filter(residence_county != "Missing") %>%
+  count(residence_county, sort = TRUE) %>%
+  slice_head(n = 5) %>%
+  pull(residence_county)
+
+top_categories <- england_immagrant %>%
+  filter(category != "Uncategorized") %>%
+  count(category, sort = TRUE) %>%
+  slice_head(n = 5) %>%
+  pull(category)
+
+filtered_data <- england_immagrant %>%
+  filter(residence_county %in% top_residences,
+         category %in% top_categories)
+
+ggplot(data = filtered_data) +
+  geom_mosaic(aes(x = product(category, residence_county), fill = residence_county), na.rm = TRUE) +
+  scale_fill_viridis_d(option = "D") +  
+  labs(
+    title = "Mosaic Plot: Top 5 Occupation vs Top 5 Residence",
+    x = "Occupation Category",
+    y = "Proportion",
+    fill = "Residence County"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(face = "bold")
+  )
+
+
+```
+
